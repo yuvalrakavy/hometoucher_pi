@@ -1,5 +1,6 @@
 
 use std::any::Any;
+use std::time::Duration;
 use tokio::net::{
     TcpStream,
 };
@@ -89,18 +90,24 @@ struct ServerInfo {
 pub async fn run(connection: TcpStream, screen: Arc<Mutex<Screen>>) -> Result<(), RfbSessionError> {
     let (output_sender, output_receiver): (Sender<ToServerMessage>, Receiver<ToServerMessage>) = channel(10);
     let (input_stream, output_stream) = connection.into_split();
-    let (stop_tx, stop_rx) = oneshot::channel();
+    let (stop_touch_tx, stop_touch_rx) = oneshot::channel();
+    let (stop_ping_tx, stop_ping_rx) = oneshot::channel();
     let touch_output_sender = output_sender.clone();
+    let ping_output_sender = output_sender.clone();
 
     let from_server_thread = tokio::spawn(async move { from_server_thread(input_stream, output_sender, screen).await });
     let to_server_thread = tokio::spawn(async move { to_server_thread(output_stream, output_receiver).await });
-    let touch_input_thread = tokio::spawn(async move { touch::run(stop_rx, touch_output_sender).await });
+    let touch_input_thread = tokio::spawn(async move { touch::run(stop_touch_rx, touch_output_sender).await });
+    let ping_server_thread = tokio::spawn(async move { ping_server_thread(stop_ping_rx, ping_output_sender).await });
 
     let _ = to_server_thread.await?;
     let _ = from_server_thread.await?;
 
-    let _ = stop_tx.send(true);
+    let _ = stop_touch_tx.send(true);
     let _ = touch_input_thread.await?;
+
+    let _ = stop_ping_tx.send(true);
+    let _ = ping_server_thread.await?;
 
     Ok(())
 }
@@ -120,6 +127,18 @@ async fn to_server_thread(mut output_stream: OwnedWriteHalf, mut output_receiver
             break;
         }
     }
+}
+
+async fn ping_server_thread(stop_rx: oneshot::Receiver<bool>, output_sender: Sender<ToServerMessage>) {
+    tokio::select! {
+        _ = async {
+            loop {
+                tokio::time::sleep(Duration::from_secs(5*60)).await;
+                let _ = output_sender.send(ToServerMessage::SetCurText("".to_string())).await;
+            };
+        } => { },
+        _ = stop_rx => { },
+    };
 }
 
 struct FromServerThread<'a> {

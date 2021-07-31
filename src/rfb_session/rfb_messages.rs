@@ -60,6 +60,7 @@ pub enum ToServerMessage {
     SetEncoding(Vec<RfbEncodingType>),
     FrameUpdateRequest(FrameUpdateRequestArgs),
     PointerEvent(PointerEventArgs),
+    SetCurText(String),
     Terminate,
 }
 
@@ -101,6 +102,13 @@ impl ToServerMessage {
                 let mut result = vec![5, *button_mask];
                 result.extend_from_slice(&mut x.to_be_bytes());
                 result.extend_from_slice(&mut y.to_be_bytes());
+                result
+            },
+            SetCurText(text) => {
+                let mut text_bytes = text.as_bytes();
+                let mut result = vec![6, 0, 0, 0];
+                result.extend_from_slice(&mut text_bytes.len().to_be_bytes());
+                result.extend_from_slice(&mut text_bytes);
                 result
             },
             Terminate => panic!("Cannot encode terminate message")
