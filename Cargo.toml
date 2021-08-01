@@ -14,3 +14,4 @@ mdns = "3.0.0"
 rustop = "1.1.1"
 png = "0.16.8"
 gethostname = "0.2.1"
+ctrlc = { version = "3.0", features = ["termination"] }

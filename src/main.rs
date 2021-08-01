@@ -171,6 +171,21 @@ async fn main() {
         param domain:Option<String>, desc: "Domain to connect to (e.g 'Beit Zait House' or 'Tel-Aviv Apt')";
     }.parse_or_exit();
 
+    let changed_to_graphics_mode =  match Screen::set_console_to_graphic_mode() {
+        Ok(_) => true,
+        Err(_) => {
+            println!("No permission to change console to graphic mode (run as service or using sudo)");
+            false
+        }
+    };
+
+    ctrlc::set_handler(move || {
+        if changed_to_graphics_mode {
+            let _ = Screen::set_console_to_text_mode();
+        }
+        std::process::exit(0);
+    }).expect("Failed to set ctrl-c handler");
+
     let mut state_manager = StateManager::new(&args.name);
 
     if let Some(domain) = args.domain {
