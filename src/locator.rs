@@ -1,5 +1,7 @@
-
+use std::collections::HashMap;
 use std::{time::Duration};
+use tokio::pin;
+use tokio_stream::{StreamExt};
 
 const HT_MANAGER_SERVICE: &'static str = "_HtVncConf._udp.local";
 const RESOLVE_TIMEOUT: Duration = Duration::from_secs(5);
@@ -44,4 +46,38 @@ fn get_port(response: &mdns::Response) -> String {
         });
 
     port.expect(&format!("Cannot extract port from mdns response: {:#?}", response))
+}
+
+fn get_domain_name(response: &mdns::Response) -> String {
+    let full_domain_name = response.records().find_map(
+        |record| match record.kind {
+            mdns::RecordKind::SRV{..} => Some(&record.name),
+            _ => None
+        }
+    );
+
+    let full_domain_name = full_domain_name.expect(&format!("Cannot extract domain name from mdns response: {:#?}", response));
+    full_domain_name[..full_domain_name.find(".").unwrap()].to_string()
+}
+
+pub async fn get_domains_list() -> Result<HashMap<String, String>, mdns::Error> {
+    let mut domains = HashMap::new();
+    let timeout = tokio::time::sleep(Duration::from_millis(200));
+    tokio::pin!(timeout);
+
+    // Will yield only one request (the first one)
+    let stream = mdns::discover::all(HT_MANAGER_SERVICE,Duration::from_millis(400))?.listen();
+    pin!(stream);
+
+    tokio::select! {
+        _ = async {
+            while let Some(Ok(response)) = stream.next().await {
+                //println!("Response: {:#?}", response);
+                let domain_address = format!("{}:{}", get_server_name(&response), get_port(&response));
+                domains.insert(get_domain_name(&response), domain_address);
+            }
+        } => {},
+        _ = &mut timeout => {},
+    }
+    Ok(domains)
 }

@@ -79,6 +79,7 @@ impl StateManager {
                             state = SessionState::QueryServersManager;
                             break;
                         }
+                        println!("Could not locate domain '{}'", domain_name);
                     };
                 },
 
@@ -168,8 +169,23 @@ async fn main() {
         synopsis "Hometouch server client";
         opt server:Option<String>, desc: "Connect to specific HomeTouch (RFB) server";
         opt name:String = gethostname::gethostname().into_string().unwrap();
+        opt domains:bool=false, desc: "List available Hometoucher domains (_HtVncConf._udp.local)";
         param domain:Option<String>, desc: "Domain to connect to (e.g 'Beit Zait House' or 'Tel-Aviv Apt')";
     }.parse_or_exit();
+
+    if args.domains {
+        match locator::get_domains_list().await {
+            Ok(domains) => {
+                println!("Found {} domains:", domains.len());
+                for (name, address) in domains.iter() {
+                    println!("{} -> {}", name, address);
+                }
+            },
+            Err(e) => eprintln!("Error obtaining Hometoucher domains: {}", e),
+        }
+
+        std::process::exit(0);
+    }
 
     let changed_to_graphics_mode =  match Screen::set_console_to_graphic_mode() {
         Ok(_) => true,
