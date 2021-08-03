@@ -187,20 +187,15 @@ async fn main() {
         std::process::exit(0);
     }
 
-    let changed_to_graphics_mode =  match Screen::set_console_to_graphic_mode() {
-        Ok(_) => true,
-        Err(_) => {
-            println!("No permission to change console to graphic mode (run as service or using sudo)");
-            false
-        }
-    };
-
-    ctrlc::set_handler(move || {
-        if changed_to_graphics_mode {
+    if let Ok(_) = Screen::set_console_to_graphic_mode() {
+        ctrlc::set_handler(move || {
             let _ = Screen::set_console_to_text_mode();
-        }
-        std::process::exit(0);
-    }).expect("Failed to set ctrl-c handler");
+            std::process::exit(0);
+        }).expect("Failed to set ctrl-c handler");
+    }
+    else {
+        eprintln!("Failed to set /dev/console to graphics mode (run with sudo or as service)")
+    }
 
     let mut state_manager = StateManager::new(&args.name);
 
