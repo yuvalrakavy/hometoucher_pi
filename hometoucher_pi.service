@@ -1,0 +1,29 @@
+
+# Remeber to do:
+#
+#  systemctl enable systemd-networkd.service systemd-networkd-wait-online.service
+#
+# In /etc/systemd/network directory add a file named local.network with:
+#
+# [Match]
+# Name=eth0
+#
+# [Network]
+# DHCP=v4
+#
+
+[Unit]
+Description=HometoucherPi
+After=systemd-networkd-wait-online.service
+Wants=systemd-networkd-wait-online.service
+
+[Service]
+ExecStart=/home/pi/hometoucher_pi "Beit Zait House"
+WorkingDirectory=/home/pi
+StandardOutput=file:/home/pi/logs/hometoucher_pi.log
+StandardError=file:/home/pi/logs/hometoucher_pi.log
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
