@@ -558,8 +558,7 @@ dependencies = [
 [[package]]
 name = "mdns"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c769962ac75a6ea437f0922b27834bcccd4c013d591383a16ae5731e3ef0f3f3"
+source = "git+https://github.com/yuvalrakavy/mdns.git?branch=fixed-discover-listen#fd45b74524986e7a5ab71a54cb33e8d215c8bb45"
 dependencies = [
  "async-std",
  "async-stream",

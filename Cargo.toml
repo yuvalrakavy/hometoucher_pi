@@ -10,7 +10,7 @@ framebuffer = "0.3.0"
 tokio = { version="1", features = ["full"]}
 tokio-stream = "0.1"
 tokio-fd = "0.3.0"
-mdns = "3.0.0"
+mdns = { git= "https://github.com/yuvalrakavy/mdns.git", branch="fixed-discover-listen" }
 rustop = "1.1.1"
 png = "0.16.8"
 gethostname = "0.2.1"
