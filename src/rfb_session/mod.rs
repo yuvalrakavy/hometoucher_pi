@@ -9,7 +9,6 @@ use tokio::net::tcp::{
     OwnedWriteHalf,
 };
 use tokio::io::{
-    AsyncReadExt,
     AsyncWriteExt,
 };
 
@@ -179,7 +178,7 @@ impl FromServerThread<'_> {
     async fn initialize_protocol(&mut self) -> Result<(), RfbSessionError> {
         let mut protocol_version: [u8; 12] = [0; 12];
 
-        let count = self.reader.read(&mut protocol_version).await?;
+        let count = self.read(&mut protocol_version).await?;
         if count != 12 {
             return Err(RfbSessionError(RfbSessionErrorKind::ServerProtocolVersion))
         }
@@ -217,7 +216,7 @@ impl FromServerThread<'_> {
         loop {
             let mut command_buffer: [u8; 2] = [0; 2];
 
-            self.reader.read(&mut command_buffer[..]).await?;
+            self.read(&mut command_buffer[..]).await?;
             let command = <u16>::from_be_bytes(command_buffer);
 
             match FromServerCommands::new(command)? {
@@ -246,7 +245,7 @@ impl FromServerThread<'_> {
     async fn get_server_supported_secuirty_options(&mut self) -> Result<Vec<u8>, RfbSessionError> {
         let mut buffer: [u8; 1]= [0; 1];
 
-        self.reader.read(&mut buffer[..]).await?;
+        self.read(&mut buffer[..]).await?;
         let count = buffer[0];
 
         if count == 0 {
@@ -256,7 +255,7 @@ impl FromServerThread<'_> {
         }
 
         let mut security_options = vec![0; count as usize];
-        self.reader.read(security_options.as_mut_slice()).await?;
+        self.read(security_options.as_mut_slice()).await?;
 
         Ok(security_options)
     }
@@ -264,7 +263,7 @@ impl FromServerThread<'_> {
     async fn get_security_result(&mut self) -> Result<(), RfbSessionError> {
         let mut buffer: [u8; 4] = [0; 4];
 
-        self.reader.read(&mut buffer[..]).await?;
+        self.read(&mut buffer[..]).await?;
         let result = u32::from_be_bytes(buffer);
 
         if result != 0 {
@@ -279,7 +278,7 @@ impl FromServerThread<'_> {
     async fn get_server_info(&mut self) -> Result<ServerInfo, RfbSessionError> {
         let mut buffer: [u8; 2+2+16] = [0; 20];
 
-        self.reader.read(&mut buffer[..]).await?;
+        self.read(&mut buffer[..]).await?;
 
         let width = u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[0..2]).unwrap());
         let height = u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[2..4]).unwrap());
@@ -297,13 +296,13 @@ impl FromServerThread<'_> {
     async fn get_string_from_server(&mut self) -> Result<String, RfbSessionError> {
         let mut count_buffer: [u8; 4] = [0; 4];
 
-        self.reader.read(&mut count_buffer).await?;
+        self.read(&mut count_buffer).await?;
         let count = i32::from_be_bytes(count_buffer);
 
         assert!(count < 1024);
         let mut message_bytes = vec![0; count as usize];
 
-        self.reader.read(message_bytes.as_mut_slice()).await?;
+        self.read(message_bytes.as_mut_slice()).await?;
         let message = String::from_utf8(message_bytes).unwrap();
 
         Ok(message)

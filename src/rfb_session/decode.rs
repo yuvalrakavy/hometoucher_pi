@@ -76,7 +76,7 @@ impl super::FromServerThread<'_> {
         Ok(())
     }
 
-    async fn read(&mut self, buffer: &mut [u8]) ->Result<usize, RfbSessionError> {
+    pub async fn read(&mut self, buffer: &mut [u8]) ->Result<usize, RfbSessionError> {
         let need_to_read = buffer.len();
         let mut actually_read = 0;
 
