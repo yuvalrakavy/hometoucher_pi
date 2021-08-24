@@ -1,21 +1,14 @@
-
 use std::any::Any;
 use std::time::Duration;
-use tokio::net::{
-    TcpStream,
-};
+use tokio::net::TcpStream;
 use tokio::net::tcp::{
     OwnedReadHalf,
     OwnedWriteHalf,
 };
-use tokio::io::{
-    AsyncWriteExt,
-};
+use tokio::io::AsyncWriteExt;
 
 use std::convert::TryFrom;
-use std::sync::{
-    Arc,
-};
+use std::sync::Arc;
 use tokio::sync::{
     Mutex,
     mpsc::{

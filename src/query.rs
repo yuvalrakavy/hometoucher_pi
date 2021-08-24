@@ -11,7 +11,7 @@ pub fn prepare_query(my_name: &str, screen: &Screen) -> Vec<u8> {
             ("Name", String::from(my_name)),
             ("ScreenWidth", screen.xres().to_string()),
             ("ScreenHeight", screen.yres().to_string()),
-            ("FromFactor", String::from("InWallPanel")),
+            ("FormFactor", String::from("InWallPanel")),
         ]
     ));
 
