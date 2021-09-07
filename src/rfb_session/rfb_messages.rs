@@ -68,16 +68,16 @@ use ToServerMessage::*;
 
 impl ToServerMessage {
     pub fn encode(&self) -> Vec<u8> {
-        match *&self {
+        match self {
             ProtocolVersion => Vec::from("RFB 003.008\n".as_bytes()),
             Security(security_type) => vec![*security_type as u8],
             ClientInit(shared) => vec![if *shared { 1 } else { 0} ],
             SetEncoding(encodings) => {
                 let mut result = vec![2, 0];
-                result.extend_from_slice(&mut (encodings.len() as u16).to_be_bytes());
+                result.extend_from_slice(&(encodings.len() as u16).to_be_bytes());
 
                 for encoding in encodings.iter() {
-                    result.extend_from_slice(&mut (*encoding as i32).to_be_bytes());
+                    result.extend_from_slice(&(*encoding as i32).to_be_bytes());
                 }
                 result
             },
@@ -89,10 +89,10 @@ impl ToServerMessage {
                 }
             }) => {
                 let mut result = vec![3, if *incremental { 1 } else { 0 }];
-                result.extend_from_slice(&mut x.to_be_bytes());
-                result.extend_from_slice(&mut y.to_be_bytes());
-                result.extend_from_slice(&mut width.to_be_bytes());
-                result.extend_from_slice(&mut height.to_be_bytes());
+                result.extend_from_slice(&x.to_be_bytes());
+                result.extend_from_slice(&y.to_be_bytes());
+                result.extend_from_slice(&width.to_be_bytes());
+                result.extend_from_slice(&height.to_be_bytes());
                 result
             },
             PointerEvent(PointerEventArgs{
@@ -100,15 +100,15 @@ impl ToServerMessage {
                 location: Point{x, y}
             }) => {
                 let mut result = vec![5, *button_mask];
-                result.extend_from_slice(&mut x.to_be_bytes());
-                result.extend_from_slice(&mut y.to_be_bytes());
+                result.extend_from_slice(&x.to_be_bytes());
+                result.extend_from_slice(&y.to_be_bytes());
                 result
             },
             SetCurText(text) => {
-                let mut text_bytes = text.as_bytes();
+                let text_bytes = text.as_bytes();
                 let mut result = vec![6, 0, 0, 0];
-                result.extend_from_slice(&mut text_bytes.len().to_be_bytes());
-                result.extend_from_slice(&mut text_bytes);
+                result.extend_from_slice(&text_bytes.len().to_be_bytes());
+                result.extend_from_slice(text_bytes);
                 result
             },
             Terminate => panic!("Cannot encode terminate message")

@@ -1,19 +1,18 @@
 
 use std::collections::HashMap;
 use std::time::Duration;
-use std::iter::FromIterator;
 use tokio::net::UdpSocket;
 use super::screen::Screen;
 
 pub fn prepare_query(my_name: &str, screen: &Screen) -> Vec<u8> {
-    let query = HashMap::from_iter(std::array::IntoIter::new(
+    let query = std::array::IntoIter::new(
         [
             ("Name", String::from(my_name)),
             ("ScreenWidth", screen.xres().to_string()),
             ("ScreenHeight", screen.yres().to_string()),
             ("FormFactor", String::from("InWallPanel")),
         ]
-    ));
+    ).collect();
 
     get_query_bytes(&query)
 }
@@ -22,7 +21,7 @@ async fn do_query_for_hometouch_server(servers_manager_address: &str, query_byte
     let socket = UdpSocket::bind("0.0.0.0:0").await.expect("Query socket binding failed");
     let mut reply_bytes: Vec<u8> = vec![0; 1024];
 
-    socket.send_to(&query_bytes[..], servers_manager_address).await.expect("Query send failed");
+    socket.send_to(query_bytes, servers_manager_address).await.expect("Query send failed");
 
     let timeout = tokio::time::sleep(timeout);
     tokio::pin!(timeout);
@@ -40,7 +39,7 @@ pub async fn query_for_hometouch_server(servers_manager_address: &str, query_byt
     for _ in 0..3 {
         let result = do_query_for_hometouch_server(servers_manager_address, query_bytes, Duration::from_secs(3)).await;
 
-        if let Some(_) = result {
+        if result.is_some() {
             return result;
         }
     }

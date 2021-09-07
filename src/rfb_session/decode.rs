@@ -181,7 +181,7 @@ impl super::FromServerThread<'_> {
     pub fn is_same_pixel_format(&mut self) -> bool {
         let pf = self.get_server_pixel_format();
 
-        pf.big_endians == false &&
+        !pf.big_endians &&
         pf.bits_per_pixel == 16 &&
         pf.red_max == 63 && pf.red_shift == 10 &&
         pf.green_max == 127 && pf.green_shift == 4 &&
@@ -282,21 +282,21 @@ impl HexTileDecoder<'_, '_> {
 
             let subrect_are_colors = (tile_encoding[0] & 16) != 0;
 
-            self.fill_subrect(&tile_rect, &Rect{location: Point{x: 0, y: 0}, size: tile_rect.size}, self.background);
+            self.fill_subrect(tile_rect, &Rect{location: Point{x: 0, y: 0}, size: tile_rect.size}, self.background);
 
             if subrect_count > 0 {
                 if subrect_are_colors {
                     for _ in 0..subrect_count {
                         let subrect = self.read_color_subrect().await?;
 
-                        self.fill_subrect(&tile_rect, &subrect.get_rect(), subrect.pixel);
+                        self.fill_subrect(tile_rect, &subrect.get_rect(), subrect.pixel);
                     }
                 }
                 else {
                     for _ in 0..subrect_count {
                         let subrect = self.read_subrect().await?;
 
-                        self.fill_subrect(&tile_rect, &subrect.get_rect(), self.foreground);
+                        self.fill_subrect(tile_rect, &subrect.get_rect(), self.foreground);
                     }
                 }
             }

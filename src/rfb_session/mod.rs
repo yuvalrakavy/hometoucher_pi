@@ -58,8 +58,8 @@ impl PixelFormat {
         PixelFormat {
             bits_per_pixel: buffer[0],
             depth: buffer[1],
-            big_endians: if buffer[2] != 0 { true } else {false},
-            true_color: if buffer[3] != 0 { true } else { false },
+            big_endians: buffer[2] != 0,
+            true_color: buffer[3] != 0,
             red_max: u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[4..6]).unwrap()),
             green_max: u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[6..8]).unwrap()),
             blue_max: u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[8..10]).unwrap()),
@@ -336,7 +336,7 @@ impl std::error::Error for RfbSessionError {
 
 impl std::fmt::Display for RfbSessionError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self.to_string())
+        write!(f, "{:?}", self.0)
     }
 }
 

@@ -109,7 +109,7 @@ impl StateManager {
                         screen.display_png_resource(resources::CONNECTING_TO_SERVER_IMAGE);
                     }
 
-                    match Self::connect_to_server(&self.server_address.as_ref().unwrap()).await {
+                    match Self::connect_to_server(self.server_address.as_ref().unwrap()).await {
                         Some(stream) => {
                             self.stream = Some(stream);
                             state = SessionState::RfbSession;
@@ -187,7 +187,7 @@ async fn main() {
         std::process::exit(0);
     }
 
-    if let Ok(_) = Screen::set_console_to_graphic_mode() {
+    if Screen::set_console_to_graphic_mode().is_ok() {
         ctrlc::set_handler(move || {
             let _ = Screen::set_console_to_text_mode();
             std::process::exit(0);
