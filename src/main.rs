@@ -130,6 +130,59 @@ impl StateManager {
         }
     }
 
+    async fn do_manager_session(&mut self, server_manager: &str) {
+        let mut state: SessionState = SessionState::QueryServersManager;
+
+        loop {
+            match state {
+                SessionState::QueryServersManager => {
+                    {
+                        let mut screen = self.screen.lock().await;
+                        
+                        screen.display_png_resource(resources::QUERY_FOR_SERVER_IMAGE);
+                    }
+
+                    match query::query_for_hometouch_server(server_manager, &self.query_bytes).await {
+                        Some(server_address) => {
+                            self.server_address = Some(server_address);
+                            state = SessionState::ConnectToServer;
+                        },
+                        None => {
+                            println!("Query of server manager {} failed, retry in 3 seconds", server_manager);
+                            tokio::time::sleep(Duration::from_secs(3)).await;
+                        }
+                    };
+                },
+
+                SessionState::ConnectToServer => {
+                    {
+                        let mut screen = self.screen.lock().await;
+                        
+                        screen.display_png_resource(resources::CONNECTING_TO_SERVER_IMAGE);
+                    }
+
+                    match Self::connect_to_server(self.server_address.as_ref().unwrap()).await {
+                        Some(stream) => {
+                            self.stream = Some(stream);
+                            state = SessionState::RfbSession;
+                        },
+                        None => {
+                            self.server_address = None;
+                            state = SessionState::QueryServersManager;
+                        },
+                    };
+                },
+
+                SessionState::RfbSession => {
+                    println!("{} -> {}", server_manager, self.server_address.as_ref().unwrap());
+                    let _ = rfb_session::run(self.stream.take().unwrap(), self.screen.clone()).await;
+                    state = SessionState::ConnectToServer;
+                },
+                s => panic!("Unexpected state: {:?}", s),
+            }
+        }
+    }
+
     async fn do_server_session(&mut self, server_address: &str) {
         let mut state = SessionState::ConnectToServer;
 
@@ -168,6 +221,7 @@ async fn main() {
     let (args, _) = opts! {
         synopsis "Hometouch server client";
         opt server:Option<String>, desc: "Connect to specific HomeTouch (RFB) server";
+        opt manager:Option<String>, desc: "Use manager at specific address (default is the use mDNS for finding manager address";
         opt name:String = gethostname::gethostname().into_string().unwrap();
         opt domains:bool=false, desc: "List available Hometoucher domains (_HtVncConf._udp.local)";
         param domain:Option<String>, desc: "Domain to connect to (e.g 'Beit Zait House' or 'Tel-Aviv Apt')";
@@ -202,10 +256,13 @@ async fn main() {
     if let Some(domain) = args.domain {
         state_manager.do_domain_session(&domain).await;
     }
+    else if let Some(manager) = args.manager {
+        state_manager.do_manager_session(&manager).await;
+    }
     else if let Some(server) = args.server {
         state_manager.do_server_session(&server).await;
     }
     else {
-        eprintln!("Either --server <server> or <domain name> must be specified");
+        eprintln!("Either --server <server>, --manager <manager> or <domain name> must be specified");
     }
 }
