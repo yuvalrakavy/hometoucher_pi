@@ -72,9 +72,10 @@ impl PixelFormat {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct ServerInfo {
-    framebuffer_width: u16,
-    framebuffer_height: u16,
+    frame_buffer_width: u16,
+    frame_buffer_height: u16,
     pixel_format: PixelFormat,
     name: String,
 }
@@ -178,7 +179,7 @@ impl FromServerThread<'_> {
 
         self.sender.send(ToServerMessage::ProtocolVersion).await?;
 
-        let _ = self.get_server_supported_secuirty_options().await?;
+        let _ = self.get_server_supported_security_options().await?;
         self.sender.send(ToServerMessage::Security(RfbSecurityType::None)).await?;
 
         self.get_security_result().await?;
@@ -217,7 +218,7 @@ impl FromServerThread<'_> {
                 FromServerCommands::FrameUpdate => {
                     self.frame_update().await?;
 
-                    // Send incremenetal frame refresh command to get the next frame update
+                    // Send incremental frame refresh command to get the next frame update
                     
                     self.sender.send(ToServerMessage::FrameUpdateRequest(
                         FrameUpdateRequestArgs { incremental: true,
@@ -235,7 +236,7 @@ impl FromServerThread<'_> {
         }
     }
 
-    async fn get_server_supported_secuirty_options(&mut self) -> Result<Vec<u8>, RfbSessionError> {
+    async fn get_server_supported_security_options(&mut self) -> Result<Vec<u8>, RfbSessionError> {
         let mut buffer: [u8; 1]= [0; 1];
 
         self.read(&mut buffer[..]).await?;
@@ -279,8 +280,8 @@ impl FromServerThread<'_> {
         let name = self.get_string_from_server().await?;
 
         Ok(ServerInfo{
-            framebuffer_width: width,
-            framebuffer_height: height,
+            frame_buffer_width: width,
+            frame_buffer_height: height,
             pixel_format,
             name
         })
@@ -311,7 +312,7 @@ pub enum RfbSessionErrorKind {
     ServerError(String),
     InvalidServerCommand(u16),
     InvalidEncoding(i32),
-    SessionCloedByServer,
+    SessionClosedByServer,
     JoinError,
 }
 
@@ -328,7 +329,7 @@ impl std::error::Error for RfbSessionError {
             RfbSessionErrorKind::ServerError(_) => "Server error",
             RfbSessionErrorKind::InvalidServerCommand(_) => "Invalid server command",
             RfbSessionErrorKind::InvalidEncoding(_) => "Invalid encoding",
-            RfbSessionErrorKind::SessionCloedByServer => "Session closed by server",
+            RfbSessionErrorKind::SessionClosedByServer => "Session closed by server",
             RfbSessionErrorKind::JoinError => "Join error",
         }
     }

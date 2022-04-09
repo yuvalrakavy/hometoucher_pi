@@ -84,7 +84,7 @@ impl super::FromServerThread<'_> {
             let bytes_read = self.reader.read(&mut buffer[actually_read..]).await?;
 
             if bytes_read == 0 {
-                return Err(RfbSessionError(RfbSessionErrorKind::SessionCloedByServer));
+                return Err(RfbSessionError(RfbSessionErrorKind::SessionClosedByServer));
             }
 
             actually_read += bytes_read;
@@ -178,7 +178,7 @@ impl super::FromServerThread<'_> {
         panic!("No server info")
     }
 
-    pub fn is_same_pixel_format(&mut self) -> bool {
+    pub fn is_same_pixel_format(&self) -> bool {
         let pf = self.get_server_pixel_format();
 
         !pf.big_endians &&

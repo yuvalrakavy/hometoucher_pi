@@ -5,7 +5,7 @@ use tokio::net::UdpSocket;
 use super::screen::Screen;
 
 pub fn prepare_query(my_name: &str, screen: &Screen) -> Vec<u8> {
-    let query = std::array::IntoIter::new(
+    let query = IntoIterator::into_iter(
         [
             ("Name", String::from(my_name)),
             ("ScreenWidth", screen.xres().to_string()),
@@ -29,7 +29,7 @@ async fn do_query_for_hometouch_server(servers_manager_address: &str, query_byte
     tokio::select! {
         Ok(_) = socket.recv_from(&mut reply_bytes[..]) => {
             let reply = parse_query_bytes(&reply_bytes);
-            Some(extact_server_address(&reply))
+            Some(extract_server_address(&reply))
         },
         _ = &mut timeout => None
     }
@@ -94,7 +94,7 @@ fn parse_query_bytes(query_bytes: &[u8]) -> HashMap<String, String> {
     result
 }
 
-fn extact_server_address(query_result: &HashMap<String, String>) -> String {
+fn extract_server_address(query_result: &HashMap<String, String>) -> String {
     let server = query_result.get("Server").expect("Server not found in query result");
     let port = query_result.get("Port").expect("Port not found in query result");
 

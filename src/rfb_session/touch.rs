@@ -67,7 +67,7 @@ async fn handle_input(stop_rx: oneshot::Receiver<bool>, output_sender: Sender<To
     let mut y:u16 = 0;
 
     let result =tokio::select! {
-        _ = stop_rx => Err(RfbSessionError(RfbSessionErrorKind::SessionCloedByServer)),
+        _ = stop_rx => Err(RfbSessionError(RfbSessionErrorKind::SessionClosedByServer)),
         _ = async {
             loop {
                 let mut input_buffer: [u8; EVENTS_BUFFER_SIZE] = [0; EVENTS_BUFFER_SIZE];
@@ -89,7 +89,7 @@ async fn handle_input(stop_rx: oneshot::Receiver<bool>, output_sender: Sender<To
                     }
                 }
             }
-        } => Err(RfbSessionError(RfbSessionErrorKind::SessionCloedByServer))
+        } => Err(RfbSessionError(RfbSessionErrorKind::SessionClosedByServer))
     };
     
     result
