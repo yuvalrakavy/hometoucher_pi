@@ -12,6 +12,6 @@ tokio-stream = "0.1"
 tokio-fd = "0.3.0"
 mdns = { git= "https://github.com/yuvalrakavy/mdns.git", branch="fixed-discover-listen" }
 rustop = "1.1.1"
-png = "0.16.8"
-gethostname = "0.2.1"
+png = "0.17.7"
+gethostname = "0.4.0"
 ctrlc = { version = "3.0", features = ["termination"] }
