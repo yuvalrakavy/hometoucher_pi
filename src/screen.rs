@@ -66,19 +66,24 @@ impl Screen {
 
     pub fn display_png_resource(&mut self, png_image: &'static [u8]) {
         let decoder = Decoder::new(png_image);
-        let (info, mut decoded_image_reader) = decoder.read_info().expect("Error decoding image");
+        let mut decoded_image_reader = decoder.read_info().expect("Error decoding image");
+        let info = decoded_image_reader.info();
+        let width = decoded_image_reader.info().width;
+        let height = decoded_image_reader.info().height;
         
         self.image.fill(0);         // Fill with black
-        let mut offset = (self.yres() - (info.height as usize)) / 2 * self.bytes_per_row() + 
-            (self.xres() - (info.width as usize)) / 2 * Self::bytes_per_pixel();
+        let mut offset = (self.yres() - (height as usize)) / 2 * self.bytes_per_row() +
+            (self.xres() - (width as usize)) / 2 * Self::bytes_per_pixel();
 
         for _ in 0..info.height {
             match decoded_image_reader.next_row().expect("PNG image decoding error") {
                 Some(row_buffer) => {
                     let mut png_row_offset = 0;
                     let mut row_offset = offset;
-                    for _ in 0..info.width {
-                        let pixel = DevicePixel::from_rgb(row_buffer[png_row_offset], row_buffer[png_row_offset+1], row_buffer[png_row_offset+2]);
+                    let row_data = row_buffer.data();
+
+                    for _ in 0..width {
+                        let pixel = DevicePixel::from_rgb(row_data[png_row_offset], row_data[png_row_offset+1], row_data[png_row_offset+2]);
                         png_row_offset += 3;
 
                         self.set_at_offset(row_offset, pixel);
