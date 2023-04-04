@@ -1,0 +1,26 @@
+#!/usr/local/bin/fish
+#
+# Usage: ./install_on_pi.sh <Pi ip address> <name>
+#
+# Set the hometoucher manager server
+#
+#  For BZ screens, the manager server is the 10.0.99.100:60000
+#  For TLV screens, the manager serveris 10.0.99.100:60001
+#
+if test (count $argv) -ne 2
+    echo "Usage: ./install_on_pi.sh <Pi ip address> <name>"
+    exit 1
+end
+
+set manager 10.0.99.100:60001  # TLV
+set dest $argv[1]
+set name $argv[2]
+set pi_home pi@$dest:~
+
+sed -e "s/_MANAGER_/$manager/g" -e "s/_NAME_/\"$name\"/g" hometoucher_Template.service > hometoucher.service
+
+scp target/armv7-unknown-linux-musleabihf/release/hometoucher_pi $pi_home
+scp hometoucher.service $pi_home
+scp local.network $pi_home
+scp install_on_pi.sh $pi_home
+ssh pi@$dest "source ./install_on_pi.sh"
