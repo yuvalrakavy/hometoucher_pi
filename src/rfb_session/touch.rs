@@ -61,7 +61,9 @@ const CODE_BTN_TOUCH:u16 = 330;
 
 #[allow(unused_variables)]
 async fn handle_input(stop_rx: oneshot::Receiver<bool>, output_sender: Sender<ToServerMessage>) -> Result<(), RfbSessionError> {
-    let events_input_file = OpenOptions::new().read(true).open("/dev/input/by-path/platform-soc:firmware:touchscreen-event").await?;
+    //let input_device = "/dev/input/by-path/platform-soc:firmware:touchscreen-event";
+    let input_device_name = "/dev/input/event2";
+    let events_input_file = OpenOptions::new().read(true).open(input_device_name).await.unwrap();
     let mut events_input = AsyncFd::try_from(events_input_file.as_raw_fd())?;
     let mut x:u16 = 0;
     let mut y:u16 = 0;
