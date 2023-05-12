@@ -181,7 +181,7 @@ impl super::FromServerThread<'_> {
     pub fn is_same_pixel_format(&self) -> bool {
         let pf = self.get_server_pixel_format();
 
-        !pf.big_endians &&
+        !pf.big_endian &&
         pf.bits_per_pixel == 16 &&
         pf.red_max == 63 && pf.red_shift == 10 &&
         pf.green_max == 127 && pf.green_shift == 4 &&
@@ -200,7 +200,7 @@ impl super::FromServerThread<'_> {
             let pf = self.get_server_pixel_format();
 
             if pf.depth == 32 {
-                let pixel_value =  if pf.big_endians {
+                let pixel_value =  if pf.big_endian {
                     ((server_pixel[1] as u32) << 16) + ((server_pixel[2] as u32) << 8) + server_pixel[3] as u32
                 } else { 
                     ((server_pixel[2] as u32) << 16) + ((server_pixel[1] as u32) << 8) + server_pixel[0] as u32

@@ -42,7 +42,7 @@ use super::screen::Screen;
 pub struct PixelFormat {
     bits_per_pixel: u8,
     depth: u8,
-    big_endians: bool,
+    big_endian: bool,
     true_color: bool,
     red_max: u16,
     green_max: u16,
@@ -58,7 +58,7 @@ impl PixelFormat {
         PixelFormat {
             bits_per_pixel: buffer[0],
             depth: buffer[1],
-            big_endians: buffer[2] != 0,
+            big_endian: buffer[2] != 0,
             true_color: buffer[3] != 0,
             red_max: u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[4..6]).unwrap()),
             green_max: u16::from_be_bytes(<[u8; 2]>::try_from(&buffer[6..8]).unwrap()),
@@ -93,14 +93,14 @@ pub async fn run(connection: TcpStream, screen: Arc<Mutex<Screen>>) -> Result<()
     let touch_input_thread = tokio::spawn(async move { touch::run(stop_touch_rx, touch_output_sender).await });
     let ping_server_thread = tokio::spawn(async move { ping_server_thread(stop_ping_rx, ping_output_sender).await });
 
-    let _ = to_server_thread.await?;
-    let _ = from_server_thread.await?;
+    to_server_thread.await?;
+    from_server_thread.await?;
 
-    let _ = stop_touch_tx.send(true);
-    let _ = touch_input_thread.await?;
+    _ = stop_touch_tx.send(true);
+    touch_input_thread.await?;
 
-    let _ = stop_ping_tx.send(true);
-    let _ = ping_server_thread.await?;
+    _ = stop_ping_tx.send(true);
+    ping_server_thread.await?;
 
     Ok(())
 }
