@@ -12,15 +12,17 @@ if test (count $argv) -ne 2
     exit 1
 end
 
-set manager 10.0.99.100:60001  # TLV
+#set manager 10.0.99.100:60001  # TLV
+set manager 10.0.99.100:60000  # BZl
 set dest $argv[1]
 set name $argv[2]
-set pi_home pi@$dest:~
+set user yuval
+set pi_home $user@$dest:~
 
-sed -e "s/_MANAGER_/$manager/g" -e "s/_NAME_/\"$name\"/g" hometoucher_Template.service > hometoucher.service
+sed -e "s/_MANAGER_/$manager/g" -e "s/_NAME_/\"$name\"/g" -e s/_USER_/$user/g hometoucher_Template.service > hometoucher.service
 
 scp target/armv7-unknown-linux-musleabihf/release/hometoucher_pi $pi_home
 scp hometoucher.service $pi_home
 scp local.network $pi_home
 scp install_on_pi.sh $pi_home
-ssh pi@$dest "source ./install_on_pi.sh"
+ssh $user@$dest "source ./install_on_pi.sh"
