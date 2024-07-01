@@ -304,6 +304,7 @@ impl FromServerThread<'_> {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum RfbSessionErrorKind {
     IoError(std::io::Error),
     OtherError(Box<dyn Any + Send + 'static>),
