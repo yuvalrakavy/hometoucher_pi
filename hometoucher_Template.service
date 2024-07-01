@@ -33,10 +33,10 @@ After=systemd-networkd-wait-online.service
 Wants=systemd-networkd-wait-online.service
 
 [Service]
-ExecStart=/home/pi/hometoucher_pi --manager _MANAGER_ --name _NAME_
-WorkingDirectory=/home/pi
-StandardOutput=file:/home/pi/logs/hometoucher_pi.log
-StandardError=file:/home/pi/logs/hometoucher_pi.log
+ExecStart=/home/_USER_/hometoucher_pi --manager _MANAGER_ --name _NAME_
+WorkingDirectory=/home/_USER_
+StandardOutput=file:/home/_USER_/logs/hometoucher_pi.log
+StandardError=file:/home/_USER_/logs/hometoucher_pi.log
 Restart=always
 User=root
 
