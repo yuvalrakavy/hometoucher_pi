@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::{time::Duration};
+use std::time::Duration;
 use tokio::pin;
-use tokio_stream::{StreamExt};
+use tokio_stream::StreamExt;
 
 const HT_MANAGER_SERVICE: &str = "_HtVncConf._udp.local";
 const RESOLVE_TIMEOUT: Duration = Duration::from_secs(5);
